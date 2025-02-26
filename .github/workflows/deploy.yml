@@ -1,0 +1,48 @@
+name: Deploy Google Apps Script & Update Telegram Webhook
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18
+
+      - name: Install Clasp
+        run: npm install -g @google/clasp
+
+      - name: Authenticate with Google Apps Script
+        env:
+          GCP_SA_KEY: ${{ secrets.GCP_SA_KEY }}
+        run: |
+          echo "$GCP_SA_KEY" > ./gcp_key.json
+          clasp login --creds ./gcp_key.json
+
+      - name: Deploy to Google Apps Script
+        env:
+          SCRIPT_ID: ${{ secrets.SCRIPT_ID }}
+        run: |
+          clasp push
+          clasp deploy --description "Auto-deployed from GitHub Actions"
+
+      - name: Get Latest Apps Script URL
+        id: get_url
+        run: |
+          DEPLOYMENT_URL=$(clasp deployments | grep -o 'https://script.google.com/macros/s/[a-zA-Z0-9_-]*/exec' | head -1)
+          echo "DEPLOYMENT_URL=$DEPLOYMENT_URL" >> $GITHUB_ENV
+
+      - name: Update Telegram Webhook
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+        run: |
+          curl "https://api.telegram.org/bot$TELEGRAM_BOT_TOKEN/setWebhook?url=${DEPLOYMENT_URL}"
