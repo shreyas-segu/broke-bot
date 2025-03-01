@@ -23,7 +23,7 @@ jobs:
 
       - name: Authenticate with Google Apps Script
         run: |
-          clasp login --creds <(echo "${{ secrets.GCP_SA_KEY }}"" | base64 --decode)
+          clasp login --creds <(echo "${{ secrets.GCP_SA_KEY }}" | base64 --decode)
 
       - name: Deploy to Google Apps Script
         env:
