@@ -28,7 +28,9 @@ jobs:
           echo "$GCP_SA_KEY" | base64 --decode > ./gcp_key.json
 
       - name: Authenticate `clasp`
-        run: clasp login --creds ./gcp_key.json
+        run: /
+          cat ./gcp_key.json
+          clasp login --creds ./gcp_key.json
 
       - name: Deploy to Google Apps Script
         env:
