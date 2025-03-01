@@ -25,7 +25,7 @@ jobs:
         env:
           GCP_SA_KEY: ${{ secrets.GCP_SA_KEY }}
         run: |
-          clasp login --creds <(echo "${{ secrets.GCP_SA_KEY }}")
+          clasp login --creds <(echo "${{ secrets.GCP_SA_KEY }} | base64 --decode")
 
       - name: Deploy to Google Apps Script
         env:
