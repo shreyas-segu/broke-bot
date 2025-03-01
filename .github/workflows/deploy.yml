@@ -25,7 +25,7 @@ jobs:
         env:
           GCP_SA_KEY: ${{ secrets.GCP_SA_KEY }}
         run: |
-          echo "$GCP_SA_KEY" > ./gcp_key.json
+          echo "$GCP_SA_KEY" | base64 --decode > ./gcp_key.json
           clasp login --creds ./gcp_key.json
 
       - name: Deploy to Google Apps Script
@@ -46,3 +46,11 @@ jobs:
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
         run: |
           curl "https://api.telegram.org/bot$TELEGRAM_BOT_TOKEN/setWebhook?url=${DEPLOYMENT_URL}"
+
+      - name: Set Google Apps Script Properties
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          SHEET_ID: ${{ secrets.SHEET_ID }}
+        run: |
+          clasp run setProperties --params '["${{ secrets.TELEGRAM_BOT_TOKEN }}", "${{ secrets.SHEET_ID }}"]'
+          
