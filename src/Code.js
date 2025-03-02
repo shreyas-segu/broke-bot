@@ -1,11 +1,11 @@
 function testDoPost() {
   var event = {
     postData: {
-      contents: "{\n  \"update_id\": 822410803,\n  \"message\": {\n    \"message_id\": 41,\n    \"from\": {\n      \"id\": 691879361,\n      \"is_bot\": false,\n      \"first_name\": \"SS\",\n      \"username\": \"ss1997_blr\",\n      \"language_code\": \"en\"\n    },\n    \"chat\": {\n      \"id\": 691879361,\n      \"first_name\": \"SS\",\n      \"username\": \"ss1997_blr\",\n      \"type\": \"private\"\n    },\n    \"date\": 1740893791,\n    \"text\": \"Rs 270.00 debited via UPI on 02-03-2025 08:44:21 to VPA q385549627@ybl.Ref No 506161617793.Small txns?Use UPI Lite!-Federal Bank\",\n    \"entities\": [{ \"offset\": 56, \"length\": 18, \"type\": \"email\" }]\n  }\n}"
-    }
-
+      contents:
+        '{\n  "update_id": 822410803,\n  "message": {\n    "message_id": 41,\n    "from": {\n      "id": 691879361,\n      "is_bot": false,\n      "first_name": "SS",\n      "username": "ss1997_blr",\n      "language_code": "en"\n    },\n    "chat": {\n      "id": 691879361,\n      "first_name": "SS",\n      "username": "ss1997_blr",\n      "type": "private"\n    },\n    "date": 1740893791,\n    "text": "Rs 270.00 debited via UPI on 02-03-2025 08:44:21 to VPA q385549627@ybl.Ref No 506161617793.Small txns?Use UPI Lite!-Federal Bank",\n    "entities": [{ "offset": 56, "length": 18, "type": "email" }]\n  }\n}',
+    },
   };
-  doPost(event)
+  doPost(event);
 }
 
 function doPost(e) {
@@ -23,8 +23,12 @@ function doPost(e) {
 
   if (pendingExpense) {
     // ✅ User is entering a category
-    validateExpenseCategory(text);
-    saveExpenseWithCategory(pendingExpense, text);
+    var extractedCategory = extractCategory(text);
+    if (extractedCategory.error) {
+      sendMessageToTelegram(chatId, extractedCategory.error);
+      return;
+    }
+    saveExpenseWithCategory(pendingExpense, extractedCategory);
     sendMessageToTelegram(chatId, '✅ Expense categorized as: ' + text);
     removePendingExpense(userId);
     return;
@@ -36,7 +40,12 @@ function doPost(e) {
     savePendingExpense(userId, chatId, expense);
     sendMessageToTelegram(
       chatId,
-      '📝 Please enter a category for this expense (e.g., Food, Travel, Shopping):',
+      ```📝 Please enter a category for this expense
+💰 Expense Categories
+🛒 Essentials: Food, Rent, Utilities, Transport, Medical
+🎉 Lifestyle: Shopping, Entertainment, Dining, Fitness
+📚 Growth: Courses, Work
+🎁 Other: Gifts, Travel, Miscellaneous```,
     );
   } else {
     sendMessageToTelegram(chatId, '❌ Could not detect a valid expense.');
@@ -105,7 +114,7 @@ function getPendingExpense(userId) {
   return null;
 }
 
-function saveExpenseWithCategory(expense, category) {
+function saveExpenseWithCategory(expense, categoryMetadata) {
   var sheet = SpreadsheetApp.openById(getSheetId()).getSheetByName('Expenses');
   if (!sheet) {
     sheet = SpreadsheetApp.openById(getSheetId()).insertSheet('Expenses');
@@ -115,6 +124,7 @@ function saveExpenseWithCategory(expense, category) {
       'Transaction Time',
       'Original Message',
       'Category',
+      'Sub-Category',
     ]);
   }
   sheet.appendRow([
@@ -122,7 +132,8 @@ function saveExpenseWithCategory(expense, category) {
     expense.amount,
     expense.transactionTime,
     expense.originalMessage,
-    category,
+    categoryMetadata.group,
+    categoryMetadata.category,
   ]);
 }
 
@@ -141,11 +152,34 @@ function removePendingExpense(userId) {
   }
 }
 
-function validateExpenseCategory(text) {
-  text = text.toLowerCase();
-  if (text !== 'food' || text !== 'travel' || text !== 'shopping') {
-    return ContentService.createTextOutput('OK');
+function extractCategory(category) {
+  category = category.toLowerCase().trim();
+  const categories = {
+    essentials: ['food', 'rent', 'utilities', 'transport', 'medical'],
+    lifestyle: ['shopping', 'entertainment', 'dining', 'fitness'],
+    growth: ['courses', 'work'],
+    other: ['gifts', 'travel', 'miscellaneous'],
+  };
+
+  let validCategory = null;
+  let group = null;
+  for (const [group, list] of Object.entries(categories)) {
+    if (list.includes(category)) {
+      validCategory = category;
+      group = group;
+      break;
+    }
   }
+
+  if (!validCategory) {
+    return { error: '❌ Invalid category. Please use a valid one.' };
+  }
+
+  return {
+    category: validCategory.charAt(0).toUpperCase() + validCategory.slice(1),
+    group: group.charAt(0).toUpperCase() + group.slice(1),
+    error: null,
+  };
 }
 
 function sendMessageToTelegram(chatId, message) {
