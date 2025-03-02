@@ -163,10 +163,10 @@ function extractCategory(category) {
 
   let validCategory = null;
   let group = null;
-  for (const [group, list] of Object.entries(categories)) {
-    if (list.includes(category)) {
+  for (let data of Object.entries(categories)) {
+    if (data[1].includes(category)) {
       validCategory = category;
-      group = group;
+      group = data[0];
       break;
     }
   }
