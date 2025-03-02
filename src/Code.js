@@ -15,7 +15,7 @@ function doPost(e) {
   var userId = data.message.from.id;
   var text = data.message.text.trim();
 
-  if(userId != getUserId()) {
+  if (userId != getUserId()) {
     return ContentService.createTextOutput('OK');
   }
 
@@ -23,6 +23,7 @@ function doPost(e) {
 
   if (pendingExpense) {
     // ✅ User is entering a category
+    validateExpenseCategory(text);
     saveExpenseWithCategory(pendingExpense, text);
     sendMessageToTelegram(chatId, '✅ Expense categorized as: ' + text);
     removePendingExpense(userId);
@@ -137,6 +138,13 @@ function removePendingExpense(userId) {
       sheet.deleteRow(i + 1);
       return;
     }
+  }
+}
+
+function validateExpenseCategory(text) {
+  text = text.toLowerCase();
+  if (text !== 'food' || text !== 'travel' || text !== 'shopping') {
+    return ContentService.createTextOutput('OK');
   }
 }
 
