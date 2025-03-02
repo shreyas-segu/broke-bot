@@ -22,7 +22,7 @@ jobs:
         id: write-clasprc
         run: |
           echo "$CLASPRC_JSON_SECRET" >> ~/.clasprc.json
-          echo "$CLASPRC_JSON_SECRET" >> $PWD/broke-bot/.clasprc.json
+          echo "$CLASPRC_JSON_SECRET" >> $PWD/.clasprc.json
         env:
           CLASPRC_JSON_SECRET: ${{ secrets.CLASPRC_JSON }}
 
