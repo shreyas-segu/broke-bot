@@ -19,10 +19,15 @@ function doPost(e) {
     return;
   }
 
+  processMessage(chatId, userId, text);
+  return;
+}
+
+function processMessage(chatId, userId, text) {
   var pendingExpense = getPendingExpense(userId);
 
+  // Category for pending expense. No other flows possible if there is a pending expense.
   if (pendingExpense) {
-    // ✅ User is entering a category
     var extractedCategory = extractCategory(text);
     if (extractedCategory.error) {
       sendMessageToTelegram(chatId, extractedCategory.error);
@@ -47,11 +52,11 @@ function doPost(e) {
         '📚 *Growth:* Courses, Work\n' +
         '🎁 *Other:* Gifts, Travel, Miscellaneous',
     );
+    return;
   } else {
     sendMessageToTelegram(chatId, '❌ Could not detect a valid expense.');
+    return;
   }
-
-  return;
 }
 
 function extractExpenseDetails(message) {
