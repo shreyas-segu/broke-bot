@@ -64,6 +64,8 @@ jobs:
         if: ${{github.event_name	!= 'schedule' }}
         run: |
           echo "$CLASPRC_JSON_SECRET" > .clasprc.json
+        env:
+          CLASPRC_JSON_SECRET: ${{ secrets.CLASPRC_JSON }}
 
       - name: Push script to scripts.google.com
         id: clasp-push
