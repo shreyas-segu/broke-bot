@@ -1,43 +1,74 @@
 name: Deploy Google Apps Script & Update Telegram Webhook
 
 on:
+  workflow_dispatch:
   push:
-    branches:
-      - main
+    branches: [main]
+  release:
+    types: [published]
+  schedule:
+    - cron: '0 0 * * SUN'
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v3
+      - name: Install clasp
+        id: install-clasp
+        run: sudo npm install @google/clasp@2.4.1 -g
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v3
+      - name: Write CLASPRC_JSON secret to .clasprc.json file
+        id: write-clasprc
+        run: echo "$CLASPRC_JSON_SECRET" >> ~/.clasprc.json
+        env:
+          CLASPRC_JSON_SECRET: ${{ secrets.CLASPRC_JSON }}
+
+      - name: Check clasp login status
+        id: clasp_login
+        run: clasp login --status
+
+      - name: Save current .clasprc.json contents to CLASPRC_JSON_FILE environment variable
+        id: save-clasprc
+        run: |
+          echo ::add-mask::$(tr -d '\n\r' < ~/.clasprc.json)
+          echo "CLASPRC_JSON_FILE=$(tr -d '\n\r' < ~/.clasprc.json)" >> $GITHUB_ENV
+
+      - name: Save CLASPRC_JSON_FILE environment variable to CLASPRC_JSON repo secret
+        id: set-clasprc-secret
+        if: ${{ env.CLASPRC_JSON_FILE != env.CLASPRC_JSON_SECRET  }}
+        uses: hmanzur/actions-set-secret@v2.0.0
+        env:
+          CLASPRC_JSON_SECRET: ${{ secrets.CLASPRC_JSON }}
         with:
-          node-version: 18
+          name: 'CLASPRC_JSON'
+          value: ${{ env.CLASPRC_JSON_FILE }}
+          repository: ${{ github.repository }}
+          token: ${{ secrets.REPO_ACCESS_TOKEN }}
 
-      - name: Install Clasp
-        run: npm install -g @google/clasp
+      - name: Checkout repo
+        id: checkout-repo
+        if: ${{github.event_name	!= 'schedule' }}
+        uses: actions/checkout@v2
 
-      - name: Decode GCP Service Account Key
+      - name: Set scriptId in .clasp.json file
+        id: set-script-id
+        if: ${{ github.event_name	!= 'schedule' && env.SCRIPT_ID}}
+        run: jq '.scriptId = "${{env.SCRIPT_ID}}"' .clasp.json > /tmp/.clasp.json && mv /tmp/.clasp.json .clasp.json
         env:
-          GCP_SA_KEY: ${{ secrets.GCP_SA_KEY }}
-        run: |
-          echo "$GCP_SA_KEY" | base64 --decode > ./gcp_key.json
+          SCRIPT_ID: ${{secrets.SCRIPT_ID}}
 
-      - name: Authenticate `clasp`
-        run: |
-          cat ./gcp_key.json
-          clasp login --creds ./gcp_key.json
+      - name: Push script to scripts.google.com
+        id: clasp-push
+        if: ${{ github.event_name	!= 'schedule'}}
+        run: clasp push -f
 
-      - name: Deploy to Google Apps Script
+      - name: Deploy Script
+        id: clasp-deploy
+        if: ${{env.DEPLOYMENT_ID && (github.event_name == 'release' || (github.event_name == 'push' && github.ref == 'refs/heads/main'))}}
+        run: clasp deploy -i "$DEPLOYMENT_ID" -d "$GITHUB_REF"
         env:
-          SCRIPT_ID: ${{ secrets.SCRIPT_ID }}
-        run: |
-          clasp push
-          clasp deploy --description "Auto-deployed from GitHub Actions"
+          DEPLOYMENT_ID: ${{ secrets.DEPLOYMENT_ID }}
 
       - name: Get Latest Apps Script URL
         id: get_url
@@ -57,4 +88,3 @@ jobs:
           SHEET_ID: ${{ secrets.SHEET_ID }}
         run: |
           clasp run setProperties --params '["${{ secrets.TELEGRAM_BOT_TOKEN }}", "${{ secrets.SHEET_ID }}"]'
-          
