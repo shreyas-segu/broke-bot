@@ -1,20 +1,5 @@
-function setProperties(botToken, sheetId) {
-  var scriptProperties = PropertiesService.getScriptProperties();
-  scriptProperties.setProperty('TELEGRAM_BOT_TOKEN', botToken);
-  scriptProperties.setProperty('SHEET_ID', sheetId);
-}
-
-function getBotToken() {
-  var scriptProperties = PropertiesService.getScriptProperties();
-  return scriptProperties.getProperty('TELEGRAM_BOT_TOKEN');
-}
-
-function getSheetId() {
-  var scriptProperties = PropertiesService.getScriptProperties();
-  return scriptProperties.getProperty('SHEET_ID');
-}
-
 function doPost(e) {
+  console.log(JSON.stringify(e));
   var data = JSON.parse(e.postData.contents);
   var chatId = data.message.chat.id;
   var userId = data.message.from.id;
@@ -155,4 +140,20 @@ function sendMessageToTelegram(chatId, message) {
   };
 
   UrlFetchApp.fetch(url, options);
+}
+
+function setProperties(botToken, sheetId) {
+  var scriptProperties = PropertiesService.getScriptProperties();
+  scriptProperties.setProperty('TELEGRAM_BOT_TOKEN', botToken);
+  scriptProperties.setProperty('SHEET_ID', sheetId);
+}
+
+function getBotToken() {
+  var scriptProperties = PropertiesService.getScriptProperties();
+  return scriptProperties.getProperty('TELEGRAM_BOT_TOKEN');
+}
+
+function getSheetId() {
+  var scriptProperties = PropertiesService.getScriptProperties();
+  return scriptProperties.getProperty('SHEET_ID');
 }
