@@ -1,5 +1,5 @@
 function doPost(e) {
-  console.log(JSON.stringify(e));
+  Logger.log(JSON.stringify(e));
   var data = JSON.parse(e.postData.contents);
   var chatId = data.message.chat.id;
   var userId = data.message.from.id;
