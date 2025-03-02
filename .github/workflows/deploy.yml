@@ -65,22 +65,20 @@ jobs:
 
       - name: Deploy Script
         id: clasp-deploy
-        if: ${{env.DEPLOYMENT_ID && (github.event_name == 'release' || (github.event_name == 'push' && github.ref == 'refs/heads/main'))}}
-        run: clasp deploy -i "$DEPLOYMENT_ID" -d "$GITHUB_REF"
-        env:
-          DEPLOYMENT_ID: ${{ secrets.DEPLOYMENT_ID }}
-
-      - name: Get Latest Apps Script URL
-        id: get_url
+        if: ${{github.event_name == 'release' || (github.event_name == 'push' && github.ref == 'refs/heads/main')}}
         run: |
-          DEPLOYMENT_URL=$(clasp deployments | grep -o 'https://script.google.com/macros/s/[a-zA-Z0-9_-]*/exec' | head -1)
-          echo "DEPLOYMENT_URL=$DEPLOYMENT_URL" >> $GITHUB_ENV
+          DEPLOY_OUTPUT=$(clasp deploy -d "$GITHUB_REF")
+          echo "$DEPLOY_OUTPUT"
+          
+          DEPLOY_ID=$(echo "$DEPLOY_OUTPUT" | grep -oP '(?<=- )[\w-]+(?= @)')
+          echo "DEPLOY_ID=$DEPLOY_ID" >> $GITHUB_ENV
 
-      - name: Update Telegram Webhook
+      - name: Set Telegram Webhook to Latest Deployment
         env:
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
         run: |
-          curl "https://api.telegram.org/bot$TELEGRAM_BOT_TOKEN/setWebhook?url=${DEPLOYMENT_URL}"
+          WEBHOOK_URL="https://script.google.com/macros/s/${DEPLOY_ID}/exec"
+          curl -X POST "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/setWebhook" -d "url=${WEBHOOK_URL}"
 
       - name: Set Google Apps Script Properties
         env:
