@@ -22,7 +22,6 @@ jobs:
         id: write-clasprc
         run: |
           echo "$CLASPRC_JSON_SECRET" >> ~/.clasprc.json
-          echo "$CLASPRC_JSON_SECRET" >> $PWD/.clasprc.json
         env:
           CLASPRC_JSON_SECRET: ${{ secrets.CLASPRC_JSON }}
 
@@ -59,6 +58,12 @@ jobs:
         run: jq '.scriptId = "${{env.SCRIPT_ID}}"' .clasp.json > /tmp/.clasp.json && mv /tmp/.clasp.json .clasp.json
         env:
           SCRIPT_ID: ${{secrets.SCRIPT_ID}}
+
+      - name: Set .clasprc.json file in the project directory
+        id: set-clasprc
+        if: ${{github.event_name	!= 'schedule' }}
+        run: |
+          echo "$CLASPRC_JSON_SECRET" > .clasprc.json
 
       - name: Push script to scripts.google.com
         id: clasp-push
