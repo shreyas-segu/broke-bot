@@ -76,7 +76,7 @@ jobs:
         id: clasp-deploy
         if: ${{github.event_name == 'release' || (github.event_name == 'push' && github.ref == 'refs/heads/main')}}
         run: |
-          DEPLOY_OUTPUT=$(clasp deploy -d "$GITHUB_REF")
+          DEPLOY_OUTPUT=$(clasp deploy -d "$GITHUB_SHA" -i HEAD)
           echo "$DEPLOY_OUTPUT"
           
           DEPLOY_ID=$(echo "$DEPLOY_OUTPUT" | grep -oP '(?<=- )[\w-]+(?= @)')
