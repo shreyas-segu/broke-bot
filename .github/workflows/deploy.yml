@@ -20,7 +20,9 @@ jobs:
 
       - name: Write CLASPRC_JSON secret to .clasprc.json file
         id: write-clasprc
-        run: echo "$CLASPRC_JSON_SECRET" >> ~/.clasprc.json
+        run: |
+          echo "$CLASPRC_JSON_SECRET" >> ~/.clasprc.json
+          echo "$CLASPRC_JSON_SECRET" >> $PWD/broke-bot/.clasprc.json
         env:
           CLASPRC_JSON_SECRET: ${{ secrets.CLASPRC_JSON }}
 
@@ -72,7 +74,6 @@ jobs:
           
           DEPLOY_ID=$(echo "$DEPLOY_OUTPUT" | grep -oP '(?<=- )[\w-]+(?= @)')
           echo "DEPLOY_ID=$DEPLOY_ID" >> $GITHUB_ENV
-          clasp run setProperties --params '["${{ secrets.TELEGRAM_BOT_TOKEN }}", "${{ secrets.SHEET_ID }}"]'
 
       - name: Set Telegram Webhook to Latest Deployment
         env:
@@ -81,9 +82,9 @@ jobs:
           WEBHOOK_URL="https://script.google.com/macros/s/${DEPLOY_ID}/exec"
           curl -X POST "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/setWebhook" -d "url=${WEBHOOK_URL}"
 
-      # - name: Set Google Apps Script Properties
-      #   env:
-      #     TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
-      #     SHEET_ID: ${{ secrets.SHEET_ID }}
-      #   run: |
-      #     clasp run setProperties --params '["${{ secrets.TELEGRAM_BOT_TOKEN }}", "${{ secrets.SHEET_ID }}"]'
+      - name: Set Google Apps Script Properties
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          SHEET_ID: ${{ secrets.SHEET_ID }}
+        run: |
+          clasp run setProperties --params '["${{ secrets.TELEGRAM_BOT_TOKEN }}", "${{ secrets.SHEET_ID }}"]'
