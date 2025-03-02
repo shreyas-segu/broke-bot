@@ -15,6 +15,8 @@ function doPost(e) {
   var userId = data.message.from.id;
   var text = data.message.text.trim();
 
+  setChatId(chatId);
+
   if (userId != getUserId()) {
     return;
   }
@@ -204,7 +206,7 @@ function sendMessageToTelegram(chatId, message) {
 }
 
 function remindUserToAddExpenses() {
-  sendMessageToTelegram(null, '🤖 Please add your expenses for today.');
+  sendMessageToTelegram(getChatId(), '🤖 Please add your expenses for today.');
 }
 
 function findBestMatch(inputText) {
@@ -290,4 +292,14 @@ function getSheetId() {
 function getUserId() {
   var scriptProperties = PropertiesService.getScriptProperties();
   return scriptProperties.getProperty('TELEGRAM_USER_ID');
+}
+
+function getChatId() {
+  var scriptProperties = PropertiesService.getScriptProperties();
+  return scriptProperties.getProperty('CHAT_ID');
+}
+
+function setChatId(chatId) {
+  var scriptProperties = PropertiesService.getScriptProperties();
+  scriptProperties.setProperties('CHAT_ID', chatId);
 }
