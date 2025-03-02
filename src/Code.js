@@ -16,7 +16,7 @@ function doPost(e) {
   var text = data.message.text.trim();
 
   if (userId != getUserId()) {
-    return ContentService.createTextOutput('OK');
+    return;
   }
 
   var pendingExpense = getPendingExpense(userId);
@@ -27,7 +27,7 @@ function doPost(e) {
     saveExpenseWithCategory(pendingExpense, text);
     sendMessageToTelegram(chatId, '✅ Expense categorized as: ' + text);
     removePendingExpense(userId);
-    return ContentService.createTextOutput('OK');
+    return;
   }
 
   var expense = extractExpenseDetails(text);
@@ -42,7 +42,7 @@ function doPost(e) {
     sendMessageToTelegram(chatId, '❌ Could not detect a valid expense.');
   }
 
-  return ContentService.createTextOutput('OK');
+  return;
 }
 
 function extractExpenseDetails(message) {
