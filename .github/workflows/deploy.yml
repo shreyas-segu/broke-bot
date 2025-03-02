@@ -72,6 +72,11 @@ jobs:
         if: ${{ github.event_name	!= 'schedule'}}
         run: clasp push -f
 
+      - name: Undeploy old deployments
+        id: clasp-undeploy-old
+        if: ${{ github.event_name	!= 'schedule'}}
+        run: clasp deployments | awk '{print $2}' | xargs -I {} clasp undeploy {}
+
       - name: Deploy Script
         id: clasp-deploy
         if: ${{github.event_name == 'release' || (github.event_name == 'push' && github.ref == 'refs/heads/main')}}
