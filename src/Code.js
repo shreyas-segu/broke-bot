@@ -202,6 +202,9 @@ function sendMessageToTelegram(chatId, message) {
 
   UrlFetchApp.fetch(url, options);
 }
+function remindUserToAddExpenses() {
+  sendMessageToTelegram(null, '🤖 Please add your expenses for today.');
+}
 
 function setProperties(botToken, sheetId) {
   var scriptProperties = PropertiesService.getScriptProperties();
