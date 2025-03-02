@@ -40,12 +40,12 @@ function doPost(e) {
     savePendingExpense(userId, chatId, expense);
     sendMessageToTelegram(
       chatId,
-      ```📝 Please enter a category for this expense
-💰 Expense Categories
-🛒 Essentials: Food, Rent, Utilities, Transport, Medical
-🎉 Lifestyle: Shopping, Entertainment, Dining, Fitness
-📚 Growth: Courses, Work
-🎁 Other: Gifts, Travel, Miscellaneous```,
+      '📝 Please enter a category for this expense:\n\n' +
+        '💰 *Expense Categories*\n' +
+        '🛒 *Essentials:* Food, Rent, Utilities, Transport, Medical\n' +
+        '🎉 *Lifestyle:* Shopping, Entertainment, Dining, Fitness\n' +
+        '📚 *Growth:* Courses, Work\n' +
+        '🎁 *Other:* Gifts, Travel, Miscellaneous',
     );
   } else {
     sendMessageToTelegram(chatId, '❌ Could not detect a valid expense.');
