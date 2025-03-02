@@ -75,7 +75,7 @@ jobs:
       - name: Undeploy old deployments
         id: clasp-undeploy-old
         if: ${{ github.event_name	!= 'schedule'}}
-        run: clasp deployments | awk 'NR>1 && $1 ~ /^[0-9]+$/ {print $2}' | xargs -I {} clasp undeploy {}
+        run: clasp deployments | awk 'NR>1 && $1 ~ /^[0-9]+$/ {print $2}' | tail -n +6 | xargs -I {} clasp undeploy {}
 
       - name: Deploy Script
         id: clasp-deploy
