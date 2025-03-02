@@ -29,6 +29,12 @@ jobs:
         id: clasp_login
         run: clasp login --status
 
+      - name: Save current .clasprc.json contents to CLASPRC_JSON_FILE environment variable
+        id: save-clasprc
+        run: |
+          echo ::add-mask::$(tr -d '\n\r' < ~/.clasprc.json)
+          echo "CLASPRC_JSON_FILE=$(tr -d '\n\r' < ~/.clasprc.json)" >> $GITHUB_ENV
+
       - name: Save CLASPRC_JSON_FILE environment variable to CLASPRC_JSON repo secret
         id: set-clasprc-secret
         if: ${{ env.CLASPRC_JSON_FILE != env.CLASPRC_JSON_SECRET  }}
