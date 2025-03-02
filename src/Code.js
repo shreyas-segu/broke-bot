@@ -301,5 +301,5 @@ function getChatId() {
 
 function setChatId(chatId) {
   var scriptProperties = PropertiesService.getScriptProperties();
-  scriptProperties.setProperties('CHAT_ID', chatId);
+  scriptProperties.setProperty('CHAT_ID', chatId);
 }
