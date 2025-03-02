@@ -1,5 +1,15 @@
+
+function testDoPost() {
+  var event = {
+    postData: {
+      contents:
+        '{\n  "update_id": 822410803,\n  "message": {\n    "message_id": 41,\n    "from": {\n      "id": 691879361,\n      "is_bot": false,\n      "first_name": "SS",\n      "username": "ss1997_blr",\n      "language_code": "en"\n    },\n    "chat": {\n      "id": 691879361,\n      "first_name": "SS",\n      "username": "ss1997_blr",\n      "type": "private"\n    },\n    "date": 1740893791,\n    "text": "Rs 270.00 debited via UPI on 02-03-2025 08:44:21 to VPA q385549627@ybl.Ref No 506161617793.Small txns?Use UPI Lite!-Federal Bank",\n    "entities": [{ "offset": 56, "length": 18, "type": "email" }]\n  }\n}',
+    },
+  };
+  doPost(event);
+}
+
 function doPost(e) {
-  Logger.log(JSON.stringify(e));
   var data = JSON.parse(e.postData.contents);
   var chatId = data.message.chat.id;
   var userId = data.message.from.id;
