@@ -202,8 +202,73 @@ function sendMessageToTelegram(chatId, message) {
 
   UrlFetchApp.fetch(url, options);
 }
+
 function remindUserToAddExpenses() {
   sendMessageToTelegram(null, '🤖 Please add your expenses for today.');
+}
+
+function findBestMatch(inputText) {
+  var commands = [
+    {
+      keywords: ["daily expenses", "todays expenses"],
+      action: getDailyExpenses,
+    },
+    {
+      keywords: ['weekly expenses', "this week's expenses"],
+      action: getWeeklyExpenses,
+    },
+    {
+      keywords: ['monthly expenses', "this month's expenses"],
+      action: getMonthlyExpenses,
+    },
+    {
+      keywords: ['help', 'commands', 'what can I do', 'tasks'],
+      action: sendHelpMessage,
+    },
+  ];
+
+  var bestMatch = { score: 0, action: null };
+  for (var i = 0; i < commands.length; i++) {
+    for (var j = 0; j < commands[i].keywords.length; j++) {
+      var similarity = getSimilarity(inputText, commands[i].keywords[j]);
+      if (similarity > bestMatch.score) {
+        bestMatch = { score: similarity, action: commands[i].action };
+      }
+    }
+  }
+
+  return bestMatch.score > 0.6
+    ? bestMatch.action()
+    : "🤖 Sorry, I didn't understand.";
+}
+
+// Levenshtein Distance (Basic Similarity Function) - basically vanir magic that I don't understand
+function getSimilarity(str1, str2) {
+  str1 = str1.toLowerCase();
+  str2 = str2.toLowerCase();
+  var longer = str1.length > str2.length ? str1 : str2;
+  var shorter = str1.length > str2.length ? str2 : str1;
+  return (
+    (longer.length - levenshteinDistance(longer, shorter)) /
+    parseFloat(longer.length)
+  );
+}
+
+function levenshteinDistance(s1, s2) {
+  var matrix = Array.from(Array(s2.length + 1), () => new Array(s1.length + 1));
+  for (var i = 0; i <= s2.length; i++) {
+    for (var j = 0; j <= s1.length; j++) {
+      if (i === 0) matrix[i][j] = j;
+      else if (j === 0) matrix[i][j] = i;
+      else
+        matrix[i][j] = Math.min(
+          matrix[i - 1][j] + 1,
+          matrix[i][j - 1] + 1,
+          matrix[i - 1][j - 1] + (s1[j - 1] === s2[i - 1] ? 0 : 1),
+        );
+    }
+  }
+  return matrix[s2.length][s1.length];
 }
 
 function setProperties(botToken, sheetId) {
