@@ -75,17 +75,16 @@ jobs:
       - name: Undeploy old deployments
         id: clasp-undeploy-old
         if: ${{ github.event_name	!= 'schedule'}}
-        run: clasp deployments | awk '{print $2}' | xargs -I {} clasp undeploy {}
+        run: clasp deployments | awk 'NR>1 && $1 ~ /^[0-9]+$/ {print $2}' | xargs -I {} clasp undeploy {}
 
       - name: Deploy Script
         id: clasp-deploy
         if: ${{github.event_name == 'release' || (github.event_name == 'push' && github.ref == 'refs/heads/main')}}
         run: |
-          DEPLOY_OUTPUT=$(clasp deploy -d "$GITHUB_SHA" -i "@HEAD")
-          echo "$DEPLOY_OUTPUT"
-          
-          DEPLOY_ID=$(echo "$DEPLOY_OUTPUT" | grep -oP '(?<=- )[\w-]+(?= @)')
+          DEPLOY_ID=$(clasp deployments | awk '$0 ~ /HEAD/ {print $2}')
           echo "DEPLOY_ID=$DEPLOY_ID" >> $GITHUB_ENV
+          DEPLOY_OUTPUT=$(clasp deploy -d "$GITHUB_SHA" -i "$DEPLOY_ID")
+          echo "$DEPLOY_OUTPUT"
 
       - name: Set Telegram Webhook to Latest Deployment
         env:
